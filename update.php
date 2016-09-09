@@ -16,6 +16,9 @@ $update_script->set_temp_dir();
 
 // Loop through each slug we are going to process.
 foreach( $update_script->slugs as $slug ) {
+	echo PHP_EOL;
+	echo "Processing {$slug}..." . PHP_EOL;
+	
 	// Customize our configuration settings based on the current slug we're processing.
 	$update_script->set_config_settings( $slug );
 	
