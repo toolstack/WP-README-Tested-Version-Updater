@@ -236,12 +236,6 @@ class update {
 	}		
 		
 	public function clean_up() {
-		// We have to fudge the delete of the hidden SVN directory as unlink() will throw an error otherwise.
-		if( $this->platform == 'win' && false !== $this->temp_dir ) {
-			// There seems to be a problem removing the svn directory from PHP on windows, so shell out to remove it.
-			exec( "rd /s /q \"{$this->temp_dir}\\.svn\"" . $this->platform_null, $output, $result );
-		}
-
 		if( false !== $this->temp_dir ) {
 			// Clean up the temporary dirs/files.
 			$this->delete_tree( $this->temp_dir );
@@ -254,9 +248,13 @@ class update {
 	 *
 	 */
 
-	private function confirm_commit() {
+	 private function confirm_commit() {
+		// Comment the following line to display a confirmation prompt.
+		// Used for debugging only.
+		return true;
+	 
 		echo PHP_EOL;
-		echo "About to commit README. Double-check {$this->temp_dir}{$this->readme_path}readme.txt to make sure everything looks fine." . PHP_EOL;
+		echo "About to commit README. Double-check {$this->temp_dir}{$this->readme_path}/readme.txt to make sure everything looks fine." . PHP_EOL;
 		echo PHP_EOL;
 		echo "Type 'YES' in all capitals and then return to continue." . PHP_EOL;
 
@@ -276,6 +274,15 @@ class update {
 			return true;
 		}
 
+		// unlink is broken on Windows, it does not always unlink a file even if you have permissions
+		// based on if it is hidden/system/archive/readonly, so make sure all flags are cleared before
+		// unlinking.  Normally we could do this at the top level of the directory and process it with
+		// attrib's "/s /d" options, but that is also broken on SVN trees, so do it for each directory
+		// we're processing.
+		if( $this->platform == 'win' ) {
+			exec( "attrib -s -h -a -r $dir/*" );
+		}
+		
 		$files = array_diff( scandir( $dir ), array( '.', '..' ) );
 
 		foreach ( $files as $file ) {
