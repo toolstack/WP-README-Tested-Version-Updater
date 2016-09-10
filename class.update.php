@@ -17,7 +17,7 @@ class update {
 	private $home_dir = false;
 	private $temp_dir = false;
 	private $svn_modified;
-	private $latest_wp_version = '4.5';
+	private $latest_wp_version = '4.6';
 	private $readme;
 	private $readme_path;
 	private $readme_eol;
@@ -36,7 +36,7 @@ class update {
 		}
 		
 		// For debugging only.
-//		$this->platform_null = '';
+		// $this->platform_null = '';
 	}
 
 	/*
@@ -130,7 +130,7 @@ class update {
 		
 		// Note, you cannot checkout a single file from SVN, but you can limit how deep you go so "--depth files" is added 
 		// below to avoid checking out a lot of cruft from large plugins that we don't need.
-		exec( escapeshellcmd( '"' . $this->config_settings['svn-path'] . 'svn" co "' . $this->config_settings['svn-url'] . '/trunk" "' . $this->temp_dir . '" --depth files' .  $this->platform_null ), $output, $result );
+		exec( '"' . $this->config_settings['svn-path'] . 'svn" co "' . $this->config_settings['svn-url'] . '/trunk" "' . $this->temp_dir . '" --depth files' .  $this->platform_null, $output, $result );
 
 		if( $result ) {
 			echo " error, SVN checkout failed.";
@@ -196,7 +196,7 @@ class update {
 	public function commit_svn_changes( $slug ) {
 		if( $this->confirm_commit() ) {
 			echo 'Committing to SVN...';
-			exec( escapeshellcmd( '"' . $this->config_settings['svn-path'] . 'svn" commit -m "' . $this->config_settings['svn-commit-message'] . '" "' . $this->temp_dir . '/readme.txt"' ), $output, $result );
+			exec( '"' . $this->config_settings['svn-path'] . 'svn" commit -m "' . $this->config_settings['svn-commit-message'] . '" "' . $this->temp_dir . '/readme.txt"', $output, $result );
 
 			if( $result ) {
 				echo " error, commit failed." . PHP_EOL;
@@ -224,7 +224,7 @@ class update {
 
 		// Note, you cannot checkout a single file from SVN, but you can limit how deep you go so "--depth files" is added 
 		// below to avoid checking out a lot of cruft from large plugins that we don't need.
-		exec( escapeshellcmd'"' . $this->config_settings['svn-path'] . 'svn" co "' . $this->config_settings['svn-url'] . '/tags/' . $this->stable_tag . '" "' . $this->temp_dir . '" --depth files' .  $this->platform_null ), $output, $result );
+		exec( '"' . $this->config_settings['svn-path'] . 'svn" co "' . $this->config_settings['svn-url'] . '/tags/' . $this->stable_tag . '" "' . $this->temp_dir . '" --depth files' .  $this->platform_null, $output, $result );
 
 		if( $result ) {
 			echo " error, SVN checkout failed." . PHP_EOL;
@@ -283,7 +283,7 @@ class update {
 		// attrib's "/s /d" options, but that is also broken on SVN trees, so do it for each directory
 		// we're processing.
 		if( $this->platform == 'win' ) {
-			exec( escapeshellcmd( "attrib -s -h -a -r $dir/*" ) );
+			exec( "attrib -s -h -a -r \"$dir/*\"" );
 		}
 		
 		$files = array_diff( scandir( $dir ), array( '.', '..' ) );
