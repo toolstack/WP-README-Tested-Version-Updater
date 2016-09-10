@@ -20,6 +20,7 @@ class update {
 	private $latest_wp_version = '4.5';
 	private $readme;
 	private $readme_path;
+	private $readme_eol;
 	private $stable_tag;
 
 	public function __construct() {
@@ -142,7 +143,9 @@ class update {
 		echo 'Loading README in to memory.' . PHP_EOL;
 
 		// Load the readme file in to memory and split it up by lines.
-		$this->readme = explode( PHP_EOL, file_get_contents( $this->temp_dir . '/readme.txt' ) );
+		$this->readme = file_get_contents( $this->temp_dir . '/readme.txt' );
+		$this->readme_eol = $this->detect_eol_type( $this->readme );
+		$this->readme = explode( $this->readme_eol, $this->readme );
 	}
 	
 	public function replace_wp_version( $slug ) {
@@ -187,13 +190,13 @@ class update {
 	
 	public function write_readme( $slug ) {
 		echo 'Writing README to file.' . PHP_EOL;
-		file_put_contents( $this->temp_dir . $this->readme_path . '/readme.txt', implode( PHP_EOL, $this->readme ) );
+		file_put_contents( $this->temp_dir . $this->readme_path . '/readme.txt', implode( $this->readme_eol, $this->readme ) );
 	}
 	
 	public function commit_svn_changes( $slug ) {
 		if( $this->confirm_commit() ) {
 			echo 'Committing to SVN...';
-			exec( '"' . $this->config_settings['svn-path'] . 'svn" commit -m "' . $this->config_settings['svn-commit-message'] . '" "' . $this->temp_dir . '/readme.txt"', $output, $result );
+			exec( escapeshellcmd( '"' . $this->config_settings['svn-path'] . 'svn" commit -m "' . $this->config_settings['svn-commit-message'] . '" "' . $this->temp_dir . '/readme.txt"' ), $output, $result );
 
 			if( $result ) {
 				echo " error, commit failed." . PHP_EOL;
@@ -341,6 +344,16 @@ class update {
 					}
 				}
 			}
+		}
+	}
+	
+	private function detect_eol_type( $text ) {
+		list( $first, $rest ) = explode( "\n", $text, 2 );
+		
+		if( substr( $first, -1, 1 ) === "\r" ) {
+			return "\r\n";
+		} else {
+			return "\n";
 		}
 	}
 	
