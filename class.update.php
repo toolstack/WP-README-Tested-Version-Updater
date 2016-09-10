@@ -235,6 +235,10 @@ class update {
 
 	public function cleanup_after_commit( $slug ) {
 		$this->clean_up();
+		
+		// Add a slight delay as sometimes the delete takes a second for the file system to catch up with.
+		sleep(1);
+		
 		mkdir( $this->temp_dir );
 	}		
 		
