@@ -134,8 +134,10 @@ class update {
 
 		if( $result ) {
 			echo " error, SVN checkout failed.";
+			return false;
 		} else {
 			echo ' done.'  . PHP_EOL;
+			return true;
 		}
 	}
 
@@ -228,8 +230,10 @@ class update {
 
 		if( $result ) {
 			echo " error, SVN checkout failed." . PHP_EOL;
+			return false;
 		} else {
 			echo ' done.'  . PHP_EOL;
+			return true;
 		}
 	}
 
@@ -352,6 +356,8 @@ class update {
 	}
 	
 	private function detect_eol_type( $text ) {
+		if( '' == $text ) { return "\n"; }
+		
 		list( $first, $rest ) = explode( "\n", $text, 2 );
 		
 		if( substr( $first, -1, 1 ) === "\r" ) {
