@@ -8,7 +8,7 @@ class update {
 	private $platform_null;
 	private $platform;
 	private $tags;
-	private $svn_username;
+	private $svn_username = '';
 	private $placeholders;
 	private $ini_settings;
 	private $config_settings;
@@ -94,6 +94,11 @@ class update {
 		
 		// Retrieve the current WP version from the wordpress.org API.
 		$this->set_current_wp_version();
+		
+		// Set the SVN User parameter if it exists.
+		if( '' !== $ini_settings['svn-username'] ) {
+			$this->svn_username = ' --username ' . $ini_settings['svn-username'];
+		}
 
 		$this->ini_settings = $ini_settings;
 		$this->config_settings = array();
@@ -130,7 +135,7 @@ class update {
 		
 		// Note, you cannot checkout a single file from SVN, but you can limit how deep you go so "--depth files" is added 
 		// below to avoid checking out a lot of cruft from large plugins that we don't need.
-		exec( '"' . $this->config_settings['svn-path'] . 'svn" co "' . $this->config_settings['svn-url'] . '/trunk" "' . $this->temp_dir . '" --depth files' .  $this->platform_null, $output, $result );
+		exec( '"' . $this->config_settings['svn-path'] . 'svn" co "' . $this->config_settings['svn-url'] . '/trunk" "' . $this->temp_dir . '" --depth files' . $this->svn_username . $this->platform_null, $output, $result );
 
 		if( $result ) {
 			echo " error, SVN checkout failed.";
@@ -198,7 +203,7 @@ class update {
 	public function commit_svn_changes( $slug ) {
 		if( $this->confirm_commit() ) {
 			echo 'Committing to SVN...';
-			exec( '"' . $this->config_settings['svn-path'] . 'svn" commit -m "' . $this->config_settings['svn-commit-message'] . '" "' . $this->temp_dir . '/readme.txt"', $output, $result );
+			exec( '"' . $this->config_settings['svn-path'] . 'svn" commit -m "' . $this->config_settings['svn-commit-message'] . '" "' . $this->temp_dir . '/readme.txt"' . $this->svn_username, $output, $result );
 
 			if( $result ) {
 				echo " error, commit failed." . PHP_EOL;
@@ -226,7 +231,7 @@ class update {
 
 		// Note, you cannot checkout a single file from SVN, but you can limit how deep you go so "--depth files" is added 
 		// below to avoid checking out a lot of cruft from large plugins that we don't need.
-		exec( '"' . $this->config_settings['svn-path'] . 'svn" co "' . $this->config_settings['svn-url'] . '/tags/' . $this->stable_tag . '" "' . $this->temp_dir . '" --depth files' .  $this->platform_null, $output, $result );
+		exec( '"' . $this->config_settings['svn-path'] . 'svn" co "' . $this->config_settings['svn-url'] . '/tags/' . $this->stable_tag . '" "' . $this->temp_dir . '" --depth files' . $this->svn_username . $this->platform_null, $output, $result );
 
 		if( $result ) {
 			echo " error, SVN checkout failed." . PHP_EOL;
