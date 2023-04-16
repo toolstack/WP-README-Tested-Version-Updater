@@ -1,6 +1,6 @@
 # WP README Tested Version Updated
 
-WordPress plugin readme's contain a "Tested up to:" field in them which indicates which version of WordPress the plugin is compatible with.  However, quite often one or more releases of WordPress are done without the plugin being updated, causing this to value to fall behind the current WordPress release. 
+WordPress plugin readme's contain a "Tested up to:" field in them which indicates which version of WordPress the plugin is compatible with.  However, quite often one or more releases of WordPress are done without the plugin being updated, causing this to value to fall behind the current WordPress release.
 
 This script is designed to update the readme.txt file of multiple plugins in the wordpress.org plugin directory to be in sync with the current WordPress release version.
 
@@ -20,7 +20,7 @@ The script is intended to be run from it's own repo directory, you do not have t
 
 The script accepts a list of plugin slugs to update:
 
-To do an updatee, do the following:
+To do an update, do the following:
 
 1. Run "php update.php plugin-slug"
 
