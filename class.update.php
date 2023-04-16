@@ -31,10 +31,10 @@ class update {
 			$this->platform_null = ' > nul 2>&1';
 			$this->platform = 'win';
 		} else {
-			$this->platform_null = ' > /dev/null 2> 1';
+			$this->platform_null = ' > /dev/null 2>&1';
 			$this->platform = 'nix';
 		}
-		
+
 		// For debugging only.
 		// $this->platform_null = '';
 	}
@@ -83,18 +83,18 @@ class update {
 
 		// Get the plugin slugs we're going to update.
 		$slugs = explode( ',', $ini_settings['plugin-slugs'] );
-		
+
 		foreach( $slugs as $slug ) {
 			$slug = trim( $slug );
-			
+
 			if( $slug != '' ) {
 				$this->slugs[] = trim( $slug );
 			}
 		}
-		
+
 		// Retrieve the current WP version from the wordpress.org API.
 		$this->set_current_wp_version();
-		
+
 		// Set the SVN User parameter if it exists.
 		if( '' !== $ini_settings['svn-username'] ) {
 			$this->svn_username = ' --username ' . $ini_settings['svn-username'];
@@ -120,7 +120,7 @@ class update {
 			$this->config_settings[$setting] = $this->release_replace_placeholders( $value, $this->placeholders );
 		}
 	}
-	
+
 	public function set_temp_dir() {
 		// Get a temporary working directory to checkout the SVN repo to.
 		$this->temp_dir = tempnam( $this->sys_temp_dir, "RTV" );
@@ -132,8 +132,8 @@ class update {
 	public function checkout_svn_trunk_readme( $slug ) {
 		// Time to checkout the SVN tree.
 		echo "Checking out trunk README from SVN tree at: {$this->config_settings['svn-url']}/trunk/readme.txt...";
-		
-		// Note, you cannot checkout a single file from SVN, but you can limit how deep you go so "--depth files" is added 
+
+		// Note, you cannot checkout a single file from SVN, but you can limit how deep you go so "--depth files" is added
 		// below to avoid checking out a lot of cruft from large plugins that we don't need.
 		exec( '"' . $this->config_settings['svn-path'] . 'svn" co "' . $this->config_settings['svn-url'] . '/trunk" "' . $this->temp_dir . '" --depth files' . $this->svn_username . $this->platform_null, $output, $result );
 
@@ -154,25 +154,25 @@ class update {
 		$this->readme_eol = $this->detect_eol_type( $this->readme );
 		$this->readme = explode( $this->readme_eol, $this->readme );
 	}
-	
+
 	public function replace_wp_version( $slug ) {
 		$updated = false;
 		$notfound = true;
-		
+
 		// Loop through the readme lines.
 		for( $i = 0; $i < count( $this->readme ); $i++ ) {
 			// The header lines are complete when we run in to the first blank line so we can stop looking.
 			if( trim( $this->readme[$i] ) == '' ) {
 				break;
 			}
-			
+
 			// Split each readme line based on the colon.
 			$parsed = explode( ':', $this->readme[$i] );
-		
+
 			// Check to see if this is the 'tested up to' line and process it if so.
 			if( strtolower( $parsed[0] ) === 'tested up to' && count( $parsed ) > 1 ) {
 				$notfound = false;
-				
+
 				if( trim( $parsed[1] ) !== $this->latest_wp_version ) {
 					echo 'Updating \'Tested up to\' line in README.' . PHP_EOL;
 					$this->readme[$i] = 'Tested up to: ' . $this->latest_wp_version;
@@ -191,15 +191,15 @@ class update {
 		if( $updated == false && $notfound ) {
 			echo '\'Tested up to\' line not found in README!' . PHP_EOL;
 		}
-		
+
 		return $updated;
 	}
-	
+
 	public function write_readme( $slug ) {
 		echo 'Writing README to file.' . PHP_EOL;
 		file_put_contents( $this->temp_dir . $this->readme_path . '/readme.txt', implode( $this->readme_eol, $this->readme ) );
 	}
-	
+
 	public function commit_svn_changes( $slug ) {
 		if( $this->confirm_commit() ) {
 			echo 'Committing to SVN...';
@@ -218,7 +218,7 @@ class update {
 	public function get_stable_tag( $slug ) {
 		if( $this->stable_tag !== 'trunk' && $this->stable_tag !== '' ) {
 			echo 'Stable tag is "' . $this->stable_tag . '".' . PHP_EOL;
-		
+
 			return true;
 		} else {
 			return false;
@@ -229,7 +229,7 @@ class update {
 		// Time to checkout the SVN tree.
 		echo "Checking out stable tag README from SVN tree at: {$this->config_settings['svn-url']}/tags/{$this->stable_tag}...";
 
-		// Note, you cannot checkout a single file from SVN, but you can limit how deep you go so "--depth files" is added 
+		// Note, you cannot checkout a single file from SVN, but you can limit how deep you go so "--depth files" is added
 		// below to avoid checking out a lot of cruft from large plugins that we don't need.
 		exec( '"' . $this->config_settings['svn-path'] . 'svn" co "' . $this->config_settings['svn-url'] . '/tags/' . $this->stable_tag . '" "' . $this->temp_dir . '" --depth files' . $this->svn_username . $this->platform_null, $output, $result );
 
@@ -244,13 +244,13 @@ class update {
 
 	public function cleanup_after_commit( $slug ) {
 		$this->clean_up();
-		
+
 		// Add a slight delay as sometimes the delete takes a second for the file system to catch up with.
 		sleep(1);
-		
+
 		mkdir( $this->temp_dir );
-	}		
-		
+	}
+
 	public function clean_up() {
 		if( false !== $this->temp_dir ) {
 			// Clean up the temporary dirs/files.
@@ -268,7 +268,7 @@ class update {
 		// Comment the following line to display a confirmation prompt.
 		// Used for debugging only.
 		return true;
-	 
+
 		echo PHP_EOL;
 		echo "About to commit README. Double-check {$this->temp_dir}{$this->readme_path}/readme.txt to make sure everything looks fine." . PHP_EOL;
 		echo PHP_EOL;
@@ -281,7 +281,7 @@ class update {
 		if( trim( $message ) === 'YES' ) {
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -298,7 +298,7 @@ class update {
 		if( $this->platform == 'win' ) {
 			exec( "attrib -s -h -a -r \"$dir/*\"" );
 		}
-		
+
 		$files = array_diff( scandir( $dir ), array( '.', '..' ) );
 
 		foreach ( $files as $file ) {
@@ -328,17 +328,17 @@ class update {
 		if( ! is_array( $placeholders ) ) {
 			return $string;
 		}
-		
+
 		foreach( $placeholders as $tag => $value ) {
 			$string = preg_replace( '/{{' . $tag . '}}/i', $value, $string );
 		}
 
 		return $string;
 	}
-	
+
 	private function error_and_exit( $message ) {
 		echo $message . PHP_EOL;
-		
+
 		$this->clean_up();
 
 		exit;
@@ -359,17 +359,17 @@ class update {
 			}
 		}
 	}
-	
+
 	private function detect_eol_type( $text ) {
 		if( '' == $text ) { return "\n"; }
-		
+
 		list( $first, $rest ) = explode( "\n", $text, 2 );
-		
+
 		if( substr( $first, -1, 1 ) === "\r" ) {
 			return "\r\n";
 		} else {
 			return "\n";
 		}
 	}
-	
+
 }
